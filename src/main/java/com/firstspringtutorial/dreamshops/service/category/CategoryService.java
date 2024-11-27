@@ -5,6 +5,7 @@ import com.firstspringtutorial.dreamshops.exceptions.ResourceNotFoundException;
 import com.firstspringtutorial.dreamshops.model.Category;
 import com.firstspringtutorial.dreamshops.repository.CategoryRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -13,6 +14,7 @@ import java.util.Optional;
 @Service
 @RequiredArgsConstructor
 public class CategoryService implements ICategoryService{
+    @Autowired
     private final CategoryRepository categoryRepository;
 
     @Override
@@ -47,7 +49,7 @@ public class CategoryService implements ICategoryService{
     }
 
     @Override
-    public void deleteCategory(Long id) {
+    public void deleteCategoryById(Long id) {
         categoryRepository.findById(id).ifPresentOrElse(categoryRepository :: delete , () -> {
             throw new ResourceNotFoundException("Category Not Found");
         });

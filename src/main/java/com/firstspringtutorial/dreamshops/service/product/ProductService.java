@@ -1,6 +1,11 @@
 package com.firstspringtutorial.dreamshops.service.product;
+import com.firstspringtutorial.dreamshops.DTO.ImageDto;
+import com.firstspringtutorial.dreamshops.DTO.ProductDto;
+import com.firstspringtutorial.dreamshops.exceptions.AlreadyExistsException;
+import com.firstspringtutorial.dreamshops.exceptions.ResourceNotFoundException;
+import com.firstspringtutorial.dreamshops.model.Image;
+import com.firstspringtutorial.dreamshops.repository.ImageRepository;
 import com.firstspringtutorial.dreamshops.request.ProductUpdateRequest;
-import jakarta.persistence.*;
 import com.firstspringtutorial.dreamshops.exceptions.productNotFoundException;
 import com.firstspringtutorial.dreamshops.model.Category;
 import com.firstspringtutorial.dreamshops.model.Product;
@@ -8,6 +13,7 @@ import com.firstspringtutorial.dreamshops.repository.CategoryRepository;
 import com.firstspringtutorial.dreamshops.repository.ProductRepository;
 import com.firstspringtutorial.dreamshops.request.AddProductRequest;
 import lombok.RequiredArgsConstructor;
+import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -20,9 +26,15 @@ public class ProductService implements IProductService{
     @Autowired
     private final ProductRepository productRepository;
     private final CategoryRepository categoryRepository;
+    private final ImageRepository imageRepository;
+    private final ModelMapper modelMapper;
+
 
 
     public Product addProduct(AddProductRequest request) {
+        if (productExists(request.getBrand(), request.getName())){
+            throw new AlreadyExistsException(request.getBrand() + " " + request.getName() +" " + "Product Already Exists , You may consider updating this product instead.");
+        }
         Category category = Optional.ofNullable(categoryRepository.findByName(request.getCategory().getName()))
                 .orElseGet(() -> {
                     Category newCategory = new Category(request.getCategory().getName());
@@ -31,6 +43,9 @@ public class ProductService implements IProductService{
         );
         request.setCategory(category);
         return productRepository.save(createProduct(request ,category));
+    }
+    private boolean productExists(String name , String brand){
+        return productRepository.existsByNameAndBrand(name , brand);
     }
 
     private Product createProduct(AddProductRequest request , Category category){
@@ -45,7 +60,7 @@ public class ProductService implements IProductService{
     }
     @Override
     public Product getProductById(Long id) {
-        return  productRepository.findById(id).orElseThrow(() -> new productNotFoundException("Product not found!"));
+        return  productRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Product not found!"));
     }
 
     public Product updateProduct(ProductUpdateRequest request , Long productId) {
@@ -70,7 +85,7 @@ public class ProductService implements IProductService{
 
     @Override
     public void deleteProductById(Long id) {
-        productRepository.findById(id).ifPresentOrElse(productRepository::delete , () -> {throw new productNotFoundException("Product not found!"); } ); //product -> productRepository.delete(product); instead of ::
+        productRepository.findById(id).ifPresentOrElse(productRepository::delete , () -> {throw new ResourceNotFoundException("Product not found!"); } ); //product -> productRepository.delete(product); instead of ::
     }
 
     @Override
@@ -85,7 +100,7 @@ public class ProductService implements IProductService{
 
     @Override
     public List<Product> getProductsByBrand(String brand) {
-        return productRepository.findByCategoryBrand(brand);
+        return productRepository.findByBrand(brand);
     }
 
     @Override
@@ -93,7 +108,7 @@ public class ProductService implements IProductService{
         return productRepository.findByCategoryNameAndBrand(category,brand);
     }
 
-    @Override 
+    @Override
     public List<Product> getProductsByName(String name) {
         return productRepository.findByName(name);
     }
@@ -106,5 +121,18 @@ public class ProductService implements IProductService{
     @Override
     public Long countProductsByBrandAndName(String brand, String name) {
         return productRepository.countByBrandAndName(brand,name);
+    }
+
+    @Override
+    public List<ProductDto> getConvertedProducts(List<Product> products){
+        return products.stream().map(this::convertToDto).toList();
+    }
+    @Override
+    public ProductDto convertToDto(Product product){
+        ProductDto productDto =modelMapper.map(product , ProductDto.class );
+        List<Image> images = imageRepository.findByProductId(product.getId());
+        List<ImageDto> imageDtos = images.stream().map(image -> modelMapper.map(image , ImageDto.class)).toList();
+        productDto.setImages(imageDtos);
+        return productDto;
     }
 }

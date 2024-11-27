@@ -10,7 +10,7 @@ import java.math.BigDecimal;
 import java.util.List;
 
 @Getter
-@Setter //we can use @Data annotation for this , but we won't use it here because it is not dafe(i.e. for an entity0 because it comes with equal() and hashcode()
+@Setter //we can use @Data annotation for this , but we won't use it here because it is not safe(i.e. for an entity0 because it comes with equal() and hashcode()
 @AllArgsConstructor
 @NoArgsConstructor
 @Entity

@@ -7,6 +7,7 @@ import com.firstspringtutorial.dreamshops.model.Product;
 import com.firstspringtutorial.dreamshops.repository.ImageRepository;
 import com.firstspringtutorial.dreamshops.service.product.IProductService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -19,6 +20,7 @@ import java.util.List;
 @Service
 @RequiredArgsConstructor
 public class ImageService implements IImageService{
+    @Autowired
     private final ImageRepository imageRepository;
     private final IProductService ProductService;
     @Override
@@ -27,9 +29,10 @@ public class ImageService implements IImageService{
     }
 
     @Override
-    public void deleteImageById(Long id) {
+    public Image deleteImageById(Long id) {
         imageRepository.findById(id).ifPresentOrElse(imageRepository :: delete ,() -> {throw new ResourceNotFoundException("No image found with id : " + id);
         });
+        return null;
     }
 
     @Override
@@ -44,7 +47,7 @@ public class ImageService implements IImageService{
                 image.setImage(new SerialBlob(file.getBytes()));
                 image.setProduct(product);
 
-                String buildDownloadUrl = "/api/v1/images/image/download" ;
+                String buildDownloadUrl = "/api/v1/images/image/download/" ;
                 String downloadUrl = buildDownloadUrl + image.getId();
                 image.setDownloadUrl(downloadUrl);
 
