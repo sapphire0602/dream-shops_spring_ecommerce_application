@@ -37,7 +37,7 @@ public class AuthController {
             JwtResponse jwtResponse = new JwtResponse(userDetails.getId(), jwt);
             return ResponseEntity.ok(new ApiResponse("LOGIN SUCCESSFUL" , jwtResponse));
         } catch (AuthenticationException e) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(new ApiResponse( e.getMessage() , null));
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(new ApiResponse( "Authentication failed" + e.getMessage() , null));
         }
     }
 }

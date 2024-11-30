@@ -62,6 +62,7 @@ public class ShopConfig {
         return authProvider;
     }
 
+    @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http.csrf(AbstractHttpConfigurer :: disable)
                 .exceptionHandling(exception -> exception.authenticationEntryPoint(authEntryPoint))
